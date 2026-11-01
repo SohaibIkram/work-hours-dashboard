@@ -516,6 +516,7 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        resizeDelay: 50,
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -610,6 +611,7 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        resizeDelay: 50,
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -673,12 +675,14 @@
         datasets: [{
           data: values,
           backgroundColor: values.map(v => v >= 8.0 ? '#10b981' : '#38bdf8'),
-          borderRadius: 6
+          borderRadius: 6,
+          maxBarThickness: 38
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        resizeDelay: 50,
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -738,6 +742,7 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        resizeDelay: 50,
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -2562,6 +2567,29 @@
     });
   }
 
+  function setupResizeHandlers() {
+    let resizeTimer = null;
+    function resizeCharts() {
+      Object.keys(charts).forEach(k => {
+        const c = charts[k];
+        if (c && typeof c.resize === 'function') {
+          try { c.resize(); } catch (err) {}
+        }
+      });
+    }
+
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(resizeCharts, 60);
+    });
+
+    window.addEventListener('orientationchange', () => {
+      setTimeout(resizeCharts, 120);
+      setTimeout(resizeCharts, 350);
+      setTimeout(resizeCharts, 600);
+    });
+  }
+
   // --- Initialization ---
 
   function init() {
@@ -2569,6 +2597,7 @@
     setupModals();
     setupExcelUpload();
     setupNlpQuickAdd();
+    setupResizeHandlers();
     updateDashboard();
   }
 
