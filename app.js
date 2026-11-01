@@ -688,7 +688,19 @@
           }
         },
         scales: {
-          x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: '#94a3b8',
+              autoSkip: false,
+              maxRotation: 0,
+              minRotation: 0,
+              font: {
+                size: 11,
+                weight: '600'
+              }
+            }
+          },
           y: {
             grid: { color: 'rgba(255,255,255,0.06)' },
             min: Math.floor(Math.min(...values, 6.0)),
@@ -735,7 +747,15 @@
           }
         },
         scales: {
-          x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: '#94a3b8',
+              autoSkip: false,
+              maxRotation: 0,
+              font: { size: 10, weight: '500' }
+            }
+          },
           y: {
             grid: { color: 'rgba(255,255,255,0.06)' },
             ticks: { color: '#94a3b8', stepSize: 5 }
