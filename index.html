@@ -17,7 +17,7 @@
   <!-- Chart.js for interactive analytics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
   <!-- Drag & Drop Overlay -->
@@ -109,11 +109,13 @@
       <!-- Plain English Quick-Add Bar -->
       <section class="nlp-quick-add-section">
         <div class="nlp-bar">
-          <div class="nlp-icon" title="AI Natural Language Assistant">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <div class="nlp-input-wrapper">
+            <div class="nlp-icon" title="AI Natural Language Assistant">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <input type="text" id="nlpInput" placeholder="Write in plain English: '30th Oct came at 10:30 left at 19:00 worked 8.5 hours' or 'Nov 3 took sick leave'...">
           </div>
-          <input type="text" id="nlpInput" placeholder="Write in plain English: '30th Oct came at 10:30 left at 19:00 worked 8.5 hours' or 'Nov 3 took sick leave'...">
-          <button type="button" id="nlpSubmitBtn" onclick="if(window.handleNlpSubmit)window.handleNlpSubmit(event);" class="btn btn-primary" style="padding:0.55rem 1.15rem; font-size:0.85rem; flex-shrink:0;">
+          <button type="button" id="nlpSubmitBtn" onclick="if(window.handleNlpSubmit)window.handleNlpSubmit(event);" class="btn btn-primary">
             <span>Update Dashboard</span>
           </button>
         </div>
@@ -656,7 +658,7 @@
   <div id="toast" class="toast">Data updated successfully</div>
 
   <!-- Scripts -->
-  <script src="data.js?v=6"></script>
-  <script src="app.js?v=6"></script>
+  <script src="data.js?v=7"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
