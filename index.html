@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work Hours & Compliance Dashboard | FY 2026–27</title>
+  <meta name="description" content="Executive Work Hours & 8-Hour Compliance Analytics Dashboard for FY 2026-27">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- SheetJS for client-side Excel reading & writing -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <!-- Chart.js for interactive analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <link rel="stylesheet" href="style.css?v=5">
+</head>
+<body>
+  <!-- Drag & Drop Overlay -->
+  <div id="dropOverlay" class="drop-overlay">
+    <div class="drop-modal">
+      <div class="drop-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </div>
+      <h3>Drop Excel File to Update</h3>
+      <p>Release to immediately update all months, compliance, and charts</p>
+    </div>
+  </div>
+
+  <div class="app-layout">
+    <!-- Top Navigation / Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-mark">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="header-titles">
+          <div class="header-title-row">
+            <h1>Compliance Analytics</h1>
+            <span class="badge-fy">FY 2026–27</span>
+            <span id="dataStatusIndicator" class="data-indicator">
+              <span class="pulse-dot"></span>
+              <span id="dataStatusText">Live Data</span>
+            </span>
+          </div>
+          <p class="subtitle">Sohaib Ikram · Emp #2733 · Automation Solutions · 8h Daily Target</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Direct File Upload Button -->
+        <label for="excelFileInput" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span>Update Excel</span>
+        </label>
+        <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display:none;">
+
+        <!-- Paste Rows Modal Button -->
+        <button id="openPasteModalBtn" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+          <span>Paste Rows</span>
+        </button>
+
+        <!-- Restore Original Data Button -->
+        <button id="headerResetBtn" class="btn btn-secondary" title="Restore original 109 records from Excel">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          <span>Restore Original Data</span>
+        </button>
+
+        <!-- Settings Button -->
+        <button id="openSettingsBtn" class="btn btn-icon" title="Dashboard Settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+
+        <!-- Export Data Button -->
+        <button id="exportExcelBtn" onclick="if(window.exportCurrentDataToExcel)window.exportCurrentDataToExcel();" class="btn btn-icon" title="Export Current Data as Excel">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="dashboard-main">
+      <!-- Period Selector & Quick Filters Bar -->
+      <section class="period-control-bar">
+        <div class="period-nav-group">
+          <span class="control-label">View Period:</span>
+          <div id="periodPills" class="period-pills">
+            <!-- Dynamically populated pills (Whole FY, Jul, Aug, Sep, Oct...) -->
+          </div>
+        </div>
+
+        <div class="period-status-summary">
+          <div class="status-summary-item">
+            <span class="label">Working Days:</span>
+            <span id="periodWorkDays" class="value">85</span>
+          </div>
+          <div class="status-summary-item">
+            <span class="label">Period Verdict:</span>
+            <span id="periodVerdictBadge" class="badge-verdict on-target">On Target</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Plain English Quick-Add Bar -->
+      <section class="nlp-quick-add-section">
+        <div class="nlp-bar">
+          <div class="nlp-icon" title="AI Natural Language Assistant">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <input type="text" id="nlpInput" placeholder="Write in plain English: '30th Oct came at 10:30 left at 19:00 worked 8.5 hours' or 'Nov 3 took sick leave'...">
+          <button type="button" id="nlpSubmitBtn" onclick="if(window.handleNlpSubmit)window.handleNlpSubmit(event);" class="btn btn-primary" style="padding:0.55rem 1.15rem; font-size:0.85rem; flex-shrink:0;">
+            <span>Update Dashboard</span>
+          </button>
+        </div>
+        <div id="nlpFeedbackMsg" class="nlp-feedback-msg" style="display:none; font-size:0.825rem; padding:0.35rem 0.5rem; border-radius:4px;"></div>
+        <div id="nlpPreviewRow" class="nlp-preview-row" style="display:none;">
+          <div class="nlp-preview-content" id="nlpPreviewContent">
+            <!-- Live parsed tags -->
+          </div>
+          <div class="nlp-preview-actions">
+            <span class="nlp-hint">Press <strong>Enter</strong> to apply immediately</span>
+          </div>
+        </div>
+        <div class="nlp-examples">
+          <span class="nlp-ex-title">Try:</span>
+          <button type="button" class="nlp-chip" data-text="30th Oct came at 10:30 left at 19:00 worked 8.5 hours">30th Oct came at 10:30 left at 19:00 worked 8.5 hours</button>
+          <button type="button" class="nlp-chip" data-text="Nov 2 came at 10:45 left at 19:15 with 8.30 hours">Nov 2 came at 10:45 left at 19:15 with 8.30 hours</button>
+          <button type="button" class="nlp-chip" data-text="Nov 3 took sick leave">Nov 3 took sick leave</button>
+          <button type="button" class="nlp-chip" data-text="Nov 4 official short day from 10am to 2pm worked 4 hours">Nov 4 official short day (4h)</button>
+        </div>
+      </section>
+
+      <!-- Executive KPI Cards -->
+      <section class="kpi-grid">
+        <!-- Card 1: Balance (Surplus / Deficit) -->
+        <div class="kpi-card" id="kpiBalanceCard">
+          <div class="kpi-header">
+            <span class="kpi-title">Net Balance</span>
+            <div class="kpi-icon-wrap balance-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-main-val">
+              <span id="kpiBalanceVal">-6.3</span><span class="kpi-unit">hrs</span>
+            </div>
+            <div class="kpi-sub-val" id="kpiBalanceMin">(-379.6 minutes)</div>
+          </div>
+          <div class="kpi-footer" id="kpiBalanceFooter">
+            <span class="status-indicator-dot negative"></span>
+            <span id="kpiBalanceDesc">Deficit of 6.3h against 8.0h/day target</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Hours Logged vs Required -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Hours Logged vs Required</span>
+            <div class="kpi-icon-wrap hours-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+            </div>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-main-val">
+              <span id="kpiLoggedHours">673.7</span> <span class="kpi-divider">/</span> <span id="kpiRequiredHours">680.0</span> <span class="kpi-unit">hrs</span>
+            </div>
+            <div class="kpi-progress-bar-wrap">
+              <div class="kpi-progress-bar" id="kpiHoursProgressBar" style="width: 99.1%;"></div>
+            </div>
+          </div>
+          <div class="kpi-footer">
+            <span id="kpiHoursPct">99.1%</span> of target hours fulfilled
+          </div>
+        </div>
+
+        <!-- Card 3: Compliance Rate -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Compliance Rate</span>
+            <div class="kpi-icon-wrap compliance-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-main-val">
+              <span id="kpiComplianceRate">61.2</span><span class="kpi-unit">%</span>
+            </div>
+            <div class="kpi-sub-val" id="kpiComplianceDays">52 of 85 days ≥ 8:00h</div>
+          </div>
+          <div class="kpi-footer">
+            <span>Daily compliance frequency</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Daily Average Hours -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Daily Average</span>
+            <div class="kpi-icon-wrap avg-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </div>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-main-val">
+              <span id="kpiDailyAvg">7.93</span><span class="kpi-unit">hrs/day</span>
+            </div>
+            <div class="kpi-sub-val" id="kpiDailyAvgDiff">-4.2 mins vs 8:00 target</div>
+          </div>
+          <div class="kpi-footer">
+            <span id="kpiDailyAvgStatus">Target: 8.00h (480 mins)</span>
+          </div>
+        </div>
+
+        <!-- Card 5: Best Streak & Consistency -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Longest Streak</span>
+            <div class="kpi-icon-wrap streak-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-main-val">
+              <span id="kpiStreakDays">8</span><span class="kpi-unit">days</span>
+            </div>
+            <div class="kpi-sub-val" id="kpiStreakDates">Consecutive ≥ 8.0h days</div>
+          </div>
+          <div class="kpi-footer">
+            <span>Current streak: <strong id="kpiCurrentStreak">0 days</strong></span>
+          </div>
+        </div>
+
+        <!-- Card 6: Average In & Out Times -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Timing Profile</span>
+            <div class="kpi-icon-wrap time-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+          </div>
+          <div class="kpi-body">
+            <div class="timing-row">
+              <span class="timing-label">Avg In:</span>
+              <span class="timing-val" id="kpiAvgIn">10:38 AM</span>
+            </div>
+            <div class="timing-row">
+              <span class="timing-label">Avg Out:</span>
+              <span class="timing-val" id="kpiAvgOut">07:05 PM</span>
+            </div>
+          </div>
+          <div class="kpi-footer">
+            <span id="kpiBestDayPreview">Best: +102m · Worst: -194m</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Primary Charts Section -->
+      <section class="charts-main-grid">
+        <!-- Daily Balance Chart -->
+        <div class="chart-card span-2">
+          <div class="chart-header">
+            <div class="chart-title-group">
+              <h3>Daily Net Balance</h3>
+              <p>Minutes above (+ green) or below (- red) the 8-hour target</p>
+            </div>
+            <div class="chart-controls">
+              <span class="legend-badge surplus">Surplus</span>
+              <span class="legend-badge deficit">Deficit</span>
+            </div>
+          </div>
+          <div class="chart-container" style="height: 300px;">
+            <canvas id="dailyBalanceChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Cumulative Balance Trend Across Period -->
+        <div class="chart-card span-1">
+          <div class="chart-header">
+            <div class="chart-title-group">
+              <h3>Cumulative Balance (Hours)</h3>
+              <p>Trajectory of total surplus or deficit</p>
+            </div>
+          </div>
+          <div class="chart-container" style="height: 300px;">
+            <canvas id="cumulativeBalanceChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Secondary Analytics Grid -->
+      <section class="charts-secondary-grid">
+        <!-- Monthly Summary Table & Chart -->
+        <div class="chart-card span-2">
+          <div class="chart-header">
+            <div class="chart-title-group">
+              <h3>Month-by-Month Fiscal Performance</h3>
+              <p>Review of working days, compliance %, and net balance for each month</p>
+            </div>
+          </div>
+          <div class="table-container monthly-table-wrap">
+            <table class="data-table" id="monthlySummaryTable">
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Working Days</th>
+                  <th>Net Hours</th>
+                  <th>Required</th>
+                  <th>Daily Avg</th>
+                  <th>Compliance %</th>
+                  <th>Month Balance</th>
+                  <th>Cumul. Balance</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="monthlySummaryTableBody">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Weekday Pattern -->
+        <div class="chart-card span-1">
+          <div class="chart-header">
+            <div class="chart-title-group">
+              <h3>Day-of-Week Average</h3>
+              <p>Average daily hours by weekday</p>
+            </div>
+          </div>
+          <div class="chart-container" style="height: 250px;">
+            <canvas id="weekdayChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Additional Insights Grid -->
+      <section class="insights-grid">
+        <!-- Daily Hours Distribution Histogram -->
+        <div class="chart-card span-1">
+          <div class="chart-header">
+            <div class="chart-title-group">
+              <h3>Hours Distribution</h3>
+              <p>Breakdown of days by hours worked</p>
+            </div>
+          </div>
+          <div class="chart-container" style="height: 240px;">
+            <canvas id="distributionChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Calendar Heatmap View -->
+        <div class="chart-card span-2">
+          <div class="chart-header">
+            <div class="chart-title-group">
+              <h3>Activity & Hours Heatmap</h3>
+              <p>Daily visual audit of hours logged</p>
+            </div>
+            <div class="heatmap-legend">
+              <span class="legend-box level-leave"></span> <span>Leave/Holiday</span>
+              <span class="legend-box level-deficit"></span> <span>&lt; 7.5h</span>
+              <span class="legend-box level-near"></span> <span>7.5 - 8.0h</span>
+              <span class="legend-box level-met"></span> <span>8.0 - 8.5h</span>
+              <span class="legend-box level-surplus"></span> <span>&gt; 8.5h</span>
+            </div>
+          </div>
+          <div id="calendarHeatmap" class="calendar-heatmap-container">
+            <!-- Heatmap generated dynamically -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Detailed Daily Log Table -->
+      <section class="table-section">
+        <div class="table-card">
+          <div class="table-card-header">
+            <div class="table-title-group">
+              <h3>Daily Records & Exception Log</h3>
+              <p id="tableRowCount">Showing 85 records for the selected period</p>
+            </div>
+            <div class="table-actions-group">
+              <!-- Search box -->
+              <div class="search-input-wrap">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="tableSearchInput" placeholder="Search date, status, day...">
+              </div>
+
+              <!-- Filter pills -->
+              <div class="table-filter-pills">
+                <button class="filter-pill active" data-filter="all">All Days</button>
+                <button class="filter-pill" data-filter="working">Working Days</button>
+                <button class="filter-pill" data-filter="exceptions">Leaves & Short Days</button>
+                <button class="filter-pill" data-filter="deficit">Deficit (&lt;8h)</button>
+                <button class="filter-pill" data-filter="surplus">Surplus (≥8h)</button>
+              </div>
+
+              <!-- Add Record Action -->
+              <button id="addSingleRowBtn" class="btn btn-secondary" style="padding:0.45rem 0.8rem; font-size:0.8rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Add Record</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="table-container main-log-table">
+            <table class="data-table" id="dailyLogTable">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Day</th>
+                  <th>Time In</th>
+                  <th>Time Out</th>
+                  <th>Working Hours</th>
+                  <th>Total Time</th>
+                  <th>Status</th>
+                  <th>Net Balance</th>
+                  <th>Compliance</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="dailyLogTableBody">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-content">
+        <p>Work Hours & Compliance Dashboard · Auto-saved to browser local storage · Drop any updated <code>Time_In_Out_Tracking.xlsx</code> anytime</p>
+        <button id="resetDataBtn" class="btn-text-danger">Reset to Default Data</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Modal: Paste Rows Directly / Manual Column Entry -->
+  <div id="pasteModal" class="modal-backdrop">
+    <div class="modal-dialog" style="max-width: 680px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <h3>Add / Paste Work Rows</h3>
+          <p>Paste lines directly from clipboard OR enter data manually column by column</p>
+        </div>
+        <button class="modal-close-btn" id="closePasteModalBtn">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Tabs -->
+        <div class="modal-tab-group">
+          <button type="button" id="tabBtnClipboard" class="modal-tab-btn active">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+            <span>Paste Clipboard Text</span>
+          </button>
+          <button type="button" id="tabBtnManualColumns" class="modal-tab-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Manual Column Entry</span>
+          </button>
+        </div>
+
+        <!-- Tab 1: Clipboard Text Area -->
+        <div id="tabContentClipboard">
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <label for="pasteInput">Clipboard Content (any spacing, tab, or comma separated):</label>
+              <button type="button" id="pasteSampleBtn" class="btn-text-danger" style="color:var(--accent-blue); font-size:0.75rem; padding:0;">Insert Example</button>
+            </div>
+            <textarea id="pasteInput" rows="5" placeholder="Paste your rows here, e.g.:
+30-Oct-2026 10:30 19:00 8.30 8.30
+02-Nov-2026 Monday 10:15 18:45 8:30 8:30
+03-Nov-2026 Tuesday - - 8:00 - Sick/Casual Leave"></textarea>
+            <div id="pasteStatusMsg" style="font-size:0.8rem; margin-top:0.35rem; display:none;"></div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Manual Column-by-Column Form -->
+        <div id="tabContentManualColumns" style="display: none;">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="colDate">Date:</label>
+              <input type="date" id="colDate">
+            </div>
+            <div class="form-group">
+              <label for="colDay">Day:</label>
+              <input type="text" id="colDay" placeholder="Auto-calculated (e.g. Monday)">
+            </div>
+            <div class="form-group">
+              <label for="colTimeIn">Time In (HH:mm):</label>
+              <input type="text" id="colTimeIn" placeholder="10:30 or -">
+            </div>
+            <div class="form-group">
+              <label for="colTimeOut">Time Out (HH:mm):</label>
+              <input type="text" id="colTimeOut" placeholder="19:00 or -">
+            </div>
+            <div class="form-group">
+              <label for="colWorkingHours">Working Hours (HH:mm or decimal):</label>
+              <input type="text" id="colWorkingHours" placeholder="8:30, 8.5, or 8.30">
+            </div>
+            <div class="form-group">
+              <label for="colStatus">Status / Leave Type:</label>
+              <select id="colStatus">
+                <option value="">Normal Working Day</option>
+                <option value="Sick/Casual Leave">Sick/Casual Leave</option>
+                <option value="Official Short Day">Official Short Day</option>
+                <option value="Casual Short Day">Casual Short Day</option>
+                <option value="Karachi">Karachi (Offsite)</option>
+                <option value="Weekend">Weekend</option>
+                <option value="Holiday">Official Holiday</option>
+                <option value="Absent">Absent</option>
+              </select>
+            </div>
+            <div class="form-group span-2">
+              <label for="colBalanceOverride">Minutes Balance (Optional override):</label>
+              <input type="number" id="colBalanceOverride" placeholder="Auto-calculated from 8h target if empty">
+            </div>
+            <div class="span-2" id="colLivePreview" style="padding: 0.55rem 0.85rem; background: rgba(255, 255, 255, 0.04); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.825rem; color: var(--text-muted);">
+              Preview: Set working hours to preview balance
+            </div>
+            <div class="span-2" style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:0.25rem;">
+              <button type="button" id="clearColFormBtn" class="btn-text-danger">Reset Fields</button>
+              <button type="button" id="addColRowBtn" class="btn btn-secondary" style="font-size:0.825rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Add Row to Batch</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Common Options -->
+        <div class="paste-options" style="margin-top:0.85rem;">
+          <label class="checkbox-label">
+            <input type="checkbox" id="replaceExistingCheck" checked> Replace existing row if date already exists
+          </label>
+        </div>
+
+        <!-- Parsed / Queued Rows Preview Table -->
+        <div id="pastePreviewArea" class="paste-preview-area" style="display:none;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+            <h4 style="margin:0;">Preview Rows to Append (<span id="parsedRowCount">0</span> rows):</h4>
+            <button type="button" id="clearPreviewListBtn" class="btn-text-danger" style="font-size:0.75rem; padding:0;">Clear List</button>
+          </div>
+          <div class="paste-preview-table-wrap">
+            <table class="data-table" id="pastePreviewTable">
+              <thead>
+                <tr><th>Date</th><th>Day</th><th>In</th><th>Out</th><th>Work Hours</th><th>Balance</th><th>Status</th><th></th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="cancelPasteBtn" class="btn btn-secondary">Cancel</button>
+        <button id="commitPasteBtn" class="btn btn-primary">Append to Dashboard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Settings -->
+  <div id="settingsModal" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <h3>Dashboard Settings</h3>
+          <p>Configure daily targets, policy rules, and display preferences</p>
+        </div>
+        <button class="modal-close-btn" id="closeSettingsModalBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="settingTargetHours">Daily Working Hours Target:</label>
+          <input type="number" id="settingTargetHours" step="0.25" min="4" max="12" value="8.0">
+          <small>Standard requirement is 8.0 hours (480 minutes) per working day</small>
+        </div>
+        <div class="form-group">
+          <label for="settingBalanceSource">Balance Calculation Mode:</label>
+          <select id="settingBalanceSource">
+            <option value="calculated">Recalculate from Working Hours (Exact, Recommended)</option>
+            <option value="typed">Use Typed Minutes Balance Column (Exact to Excel)</option>
+          </select>
+          <small>Select whether to derive balance strictly from net working hours or your manual balance column</small>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="settingShowWeekends" checked> Include weekends in daily log table
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="saveSettingsBtn" class="btn btn-primary">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Edit / Add Record -->
+  <div id="editRowModal" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <h3 id="editModalTitle">Edit Record</h3>
+          <p id="editRowDateHeader">Date: 2026-08-13</p>
+        </div>
+        <button class="modal-close-btn" id="closeEditModalBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="editDate">Date:</label>
+            <input type="date" id="editDate">
+          </div>
+          <div class="form-group">
+            <label for="editDay">Day:</label>
+            <input type="text" id="editDay" placeholder="e.g. Friday">
+          </div>
+          <div class="form-group">
+            <label for="editTimeIn">Time In (HH:mm):</label>
+            <input type="text" id="editTimeIn" placeholder="10:15">
+          </div>
+          <div class="form-group">
+            <label for="editTimeOut">Time Out (HH:mm):</label>
+            <input type="text" id="editTimeOut" placeholder="18:45">
+          </div>
+          <div class="form-group">
+            <label for="editWorkingHours">Working Hours (HH:mm or decimal e.g. 8.5):</label>
+            <input type="text" id="editWorkingHours" placeholder="8:00 or 8.5">
+          </div>
+          <div class="form-group">
+            <label for="editStatus">Status / Leave Type:</label>
+            <input type="text" id="editStatus" placeholder="Sick/Casual Leave, Official Short Day...">
+          </div>
+          <div class="form-group span-2">
+            <label for="editMinutesBalance">Manual Balance Override (min, optional):</label>
+            <input type="number" id="editMinutesBalance" placeholder="Leave empty to auto-calculate from 8h target">
+          </div>
+          <div class="span-2" id="editRowPreview" style="padding: 0.6rem 0.85rem; background: rgba(255, 255, 255, 0.04); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.825rem; color: var(--text-muted);">
+            <!-- Live balance preview rendered dynamically -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="deleteRowBtn" class="btn-text-danger" style="margin-right:auto;">Delete Record</button>
+        <button id="cancelEditModalBtn" class="btn btn-secondary">Cancel</button>
+        <button id="saveEditRowBtn" class="btn btn-primary">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast">Data updated successfully</div>
+
+  <!-- Scripts -->
+  <script src="data.js?v=6"></script>
+  <script src="app.js?v=6"></script>
+</body>
+</html>
